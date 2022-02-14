@@ -11,6 +11,10 @@ body {
     align-items: center;
 }
 
+.instructions {
+    text-align: center;
+}
+
 .cell {
     width: 30px;
     height: 30px;
@@ -47,4 +51,7 @@ body {
 }
 .cpu {
     background-color: red;
+}
+.spawner.neutral {
+    background-color: gray;
 }

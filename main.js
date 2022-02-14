@@ -8,6 +8,7 @@ let gridSize = 20;
 let gameOn = false;
 let isSelected = false;
 let tick = 0;
+let tickInterval, spawnInterval, moveInterval;
 // grid is made of cellList[i].cells[j]
 
 window.addEventListener('keydown', keyDown);
@@ -20,9 +21,10 @@ startBtn.addEventListener('click', (e) => {
 function start() {
     gameOn = true;
     placeInitialCells();
-    setInterval(incrementTicks, TICKSPEED);
-    setInterval(spawn, TICKSPEED);
-    setInterval(conquer, TICKSPEED);
+    placeSpawners(5);
+    tickInterval = setInterval(incrementTicks, TICKSPEED);
+    spawnInterval = setInterval(spawn, TICKSPEED);
+    moveInterval = setInterval(conquer, TICKSPEED/2);
 };
 
 // increment spawners
@@ -53,21 +55,37 @@ function placeInitialCells() {
     let num2 = randomCell();
     let player = cellList[num1].cells[num2];
     player.classList.add('playerStart', 'spawner', 'player', 'active');
+    player.classList.remove('neutral');
     activeCell.push(num1);
     activeCell.push(num2);
-    unavailableCells.push([num1, num2]);
+    unavailableCells.push(`${num1}${num2}`);
     placeCPU(num1, num2);
 };
 
 function placeCPU(i, j) {
     // place CPU in a random cell that is NOT player cell
-    let num1, num2;
+    let num1, num2, cpu;
     do {
         num1 = randomCell();
         num2 = randomCell();
     } while (i === num1 && j === num2);
-    cellList[num1].cells[num2].classList.add('cpuStart', 'spawner', 'cpu');
+    cpu = cellList[num1].cells[num2];
+    cpu.classList.add('cpuStart', 'spawner', 'cpu');
+    cpu.classList.remove('neutral');
+    unavailableCells.push(`${num1}${num2}`);
 };
+
+function placeSpawners(n) {
+    let num1, num2;
+    while (n > 0) {
+        num1 = randomCell();
+        num2 = randomCell();
+        if (unavailableCells.indexOf(`${num1}${num2}`) === -1) {
+            cellList[num1].cells[num2].classList.add('spawner');
+            n--;
+        }
+    }
+}
 
 function randomCell() {
     return Math.floor(Math.random() * (gridSize - 1));
@@ -165,21 +183,27 @@ function keyDown(event) {
                 nextCell.classList.add('queued');
             }
         }
-    } else if (event.key == 'w') {
+    } else if (event.key == 'q') {
         clearQueue();
     }
 };
 
 function selectCell(i, j) {
     let selected = cellList[i].cells[j];
+    // deselect if it is already selected
+    if (selected.classList.contains('selected')) {
+        selected.classList.remove('selected');
+        isSelected = false;
+        return;
+    }
     // if there is a selected cell anywhere, remove it
-    if (document.querySelector('.selected')) {
+     else if (document.querySelector('.selected')) {
         document.querySelector('.selected').classList.remove('selected');
         isSelected = false;
     };
-    // if trying to select a player cell, select it
+    // if trying to select a new player cell, select it
     if (selected.classList.contains('player')) {
-        selected.classList.add('selected');
+        selected.classList.toggle('selected');
         isSelected = true;
     } else {
         return;
@@ -197,14 +221,22 @@ function conquer() {
     attacker.classList.remove('queued');
     defender.classList.remove('queued');
 
-    // check if it is player owned before moving
+    // check if attacker is player-owned before moving
     if (!attacker.classList.contains('player')) {
         return;
     }
 
-    // attack
     let attackArmy = parseInt(attacker.innerText) - 1;
     let defendArmy = parseInt(defender.innerText);
+
+    // if defender is player-owned, cells should migrate together not attack
+    if (defender.classList.contains('player')) {
+        attacker.innerText = 1;
+        defender.innerText = attackArmy + defendArmy;
+        return;
+    }
+
+    // attack
     // attacker wins
     if (attackArmy > defendArmy) {
         attackArmy -= defendArmy;
@@ -212,17 +244,42 @@ function conquer() {
         defender.classList.add('player');
         attacker.innerText = 1;
         defender.innerText = attackArmy;
+        checkWin(defender);
     }
     // tie
-    if (attackArmy === defendArmy) {
+    else if (attackArmy === defendArmy) {
         attacker.innerText = 1;
-        defender.innerText = 1;   
+        defender.innerText = 0;   
     }
     // defender wins
-    if (attackArmy < defendArmy) {
+    else if (attackArmy < defendArmy) {
         attacker.innerText = 1;
         defender.innerText = defendArmy - attackArmy;
     }
+};
 
-    // TO DO check for win condition
+function checkWin(defender) {
+    if (defender.classList.contains('player') && defender.classList.contains('cpuStart')) {
+        clearInterval(tickInterval);
+        clearInterval(spawnInterval);
+        clearInterval(moveInterval);
+        let youWin = document.createElement('h1');
+        youWin.innerText = `YOU WIN. SCORE: ${tick}. RELOAD THE PAGE`;
+        document.querySelector('.instructions').append(youWin);
+    }
+    return;
+}
+
+function clearQueue() {
+    let len = queue.length;
+    let cell;
+    if (document.querySelector('.selected')) {
+        let selected = document.querySelector('.selected');
+        selected.classList.remove('selected');
+        isSelected = false;
+    }
+    for (let i = 0; i < len; i++) {
+        cell = queue.pop();
+        cell.classList.remove('queued');
+    }
 }
