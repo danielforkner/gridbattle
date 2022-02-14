@@ -42,3 +42,9 @@ body {
 .player, .cpu {
     color: white;
 }
+.player {
+    background-color: blue;
+}
+.cpu {
+    background-color: red;
+}

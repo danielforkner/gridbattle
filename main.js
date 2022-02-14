@@ -22,6 +22,7 @@ function start() {
     placeInitialCells();
     setInterval(incrementTicks, TICKSPEED);
     setInterval(spawn, TICKSPEED);
+    setInterval(conquer, TICKSPEED);
 };
 
 // increment spawners
@@ -92,9 +93,7 @@ function keyDown(event) {
     if (event.keyCode === 32) {
         selectCell(i, j);
         return;
-    }
-
-    if (event.key == 'w' || event.key == 'ArrowUp') {
+    } else if (event.key == 'w' || event.key == 'ArrowUp') {
         if (activeCell[0] == 0) {
             return;
         } else { 
@@ -112,8 +111,7 @@ function keyDown(event) {
                 nextCell.classList.add('queued');
             }
         }
-    }
-    if (event.key == 's' || event.key == 'ArrowDown') {
+    } else if (event.key == 's' || event.key == 'ArrowDown') {
         if (activeCell[0] == (gridSize - 1)) {
             return;
         } else { 
@@ -131,8 +129,7 @@ function keyDown(event) {
                 nextCell.classList.add('queued');
             }
         }
-    }
-    if (event.key == 'a' || event.key == 'ArrowLeft') {
+    } else if (event.key == 'a' || event.key == 'ArrowLeft') {
         if (activeCell[1] == 0) {
             return;
         } else { 
@@ -144,14 +141,13 @@ function keyDown(event) {
             // add cells to the queue to be conquered
             if (isSelected) {
                 // original cell
-                queue.unshift(cellList[j + 1].cells[j]);
+                queue.unshift(cellList[i].cells[j + 1]);
                 // next cell
                 queue.unshift(nextCell);
                 nextCell.classList.add('queued');
             }
         }
-    }
-    if (event.key == 'd' || event.key == 'ArrowRight') {
+    } else if (event.key == 'd' || event.key == 'ArrowRight') {
         if (activeCell[1] == (gridSize - 1)) {
             return;
         } else { 
@@ -163,12 +159,14 @@ function keyDown(event) {
             // add cells to the queue to be conquered
             if (isSelected) {
                 // original cell
-                queue.unshift(cellList[j - 1].cells[j]);
+                queue.unshift(cellList[i].cells[j - 1]);
                 // next cell
                 queue.unshift(nextCell);
                 nextCell.classList.add('queued');
             }
         }
+    } else if (event.key == 'w') {
+        clearQueue();
     }
 };
 
@@ -187,3 +185,44 @@ function selectCell(i, j) {
         return;
     }
 };
+
+// pop cells off the queue to conquer
+function conquer() {
+    if (queue.length < 2) {
+        return;
+    }
+    let attacker = queue.pop();
+    let defender = queue.pop();
+    // remore class lists
+    attacker.classList.remove('queued');
+    defender.classList.remove('queued');
+
+    // check if it is player owned before moving
+    if (!attacker.classList.contains('player')) {
+        return;
+    }
+
+    // attack
+    let attackArmy = parseInt(attacker.innerText) - 1;
+    let defendArmy = parseInt(defender.innerText);
+    // attacker wins
+    if (attackArmy > defendArmy) {
+        attackArmy -= defendArmy;
+        defender.classList.remove('neutral', 'cpu')
+        defender.classList.add('player');
+        attacker.innerText = 1;
+        defender.innerText = attackArmy;
+    }
+    // tie
+    if (attackArmy === defendArmy) {
+        attacker.innerText = 1;
+        defender.innerText = 1;   
+    }
+    // defender wins
+    if (attackArmy < defendArmy) {
+        attacker.innerText = 1;
+        defender.innerText = defendArmy - attackArmy;
+    }
+
+    // TO DO check for win condition
+}
