@@ -45,7 +45,8 @@ function placeInitialCells() {
     // place player in a random cell
     let num1 = randomCell();
     let num2 = randomCell();
-    rowList[num1].cells[num2].classList.add('playerStart', 'spawner', 'player');
+    let player = rowList[num1].cells[num2];
+    player.classList.add('playerStart', 'spawner', 'player', 'active');
     unavailableCells.push([num1, num2]);
     placeCPU(num1, num2);
 };

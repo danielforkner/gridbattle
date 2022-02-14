@@ -19,8 +19,15 @@ body {
     text-overflow: ellipsis;
 }
 
-col {
-    width: 10px;
+.active {
+    -webkit-box-shadow: inset 0px 0px 0px 4px rgb(92, 92, 255);
+    -moz-box-shadow: inset 0px 0px 0px 4px rgb(92, 92, 255);
+    box-shadow: inset 0px 0px 0px 4px rgb(92, 92, 255);
+}
+.selected {
+    -webkit-box-shadow: inset 0px 0px 0px 4px rgb(212, 255, 92);
+    -moz-box-shadow: inset 0px 0px 0px 4px rgb(212, 255, 92);
+    box-shadow: inset 0px 0px 0px 4px rgb(212, 255, 92);
 }
 
 .playerStart {
@@ -28,4 +35,7 @@ col {
 }
 .cpuStart {
     background-color: red;
+}
+.player {
+    color: white;
 }
